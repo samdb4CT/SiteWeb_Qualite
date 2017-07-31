@@ -1,0 +1,11 @@
+<h1>Bienvenue sur un blog de Qualité !</h1>
+
+{% for nbEntites in nb_ent %}
+    <div class="Entites">
+    	<h3>{{ nbEntites.city_object_type }}</h3>
+    	<p>{{ nbEntites.type_object }}</p>
+    	<p>{{ nbEntites.count }}</p>
+    </div>
+{% empty %}
+    <p>Aucun rapport n'a été généré.</p>
+{% endfor %}
