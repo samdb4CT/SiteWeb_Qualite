@@ -1,11 +1,12 @@
-<h1>Bienvenue sur un blog de Qualité !</h1>
+{% extends "base.html" %}
+{% block title %}Stat Ile de France{% endblock %}
+{% load render_table from django_tables2 %}
+{% block content %}
 
-{% for nbEntites in nb_ent %}
-    <div class="Entites">
-    	<h3>{{ nbEntites.city_object_type }}</h3>
-    	<p>{{ nbEntites.type_object }}</p>
-    	<p>{{ nbEntites.count }}</p>
-    </div>
-{% empty %}
-    <p>Aucun rapport n'a été généré.</p>
-{% endfor %}
+<div id="titre" style="margin-top:40px">Vérification du nombre d'entités de chaque type</div>
+
+<div>
+    {% render_table nb_ent %}
+</div>
+
+{% endblock %}
