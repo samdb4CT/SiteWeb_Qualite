@@ -8,7 +8,6 @@ urlpatterns = [
     url(r'^Cat_IndustrySector', views.Cat_IndustrySector, name='Cat_IndustrySector'),
     url(r'^Invalid_geom', views.invalid_geom, name='invalid_geom'),
     url(r'^Invalid_proj', views.invalid_proj, name='invalid_proj'),
-    url(r'^meshWithoutLandUseArea', views.count_meshWithoutLandUseArea, name='meshWithoutLandUseArea'),
-    url(r'^HouseholdWithoutAbstractPerson', views.count_HouseholdWithoutAbstractPerson, name='HouseholdWithoutAbstractPerson'),
+    url(r'^contraintesIntegrite', views.count_contraintesIntegrite, name='contraintesIntegrite'),
 ]
 

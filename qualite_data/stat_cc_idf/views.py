@@ -29,7 +29,6 @@ class EntiteTable(tables.Table):
         attrs = {'class': 'palegreen'}
         
 def urban_project_capacity(request):
-    upc = VerifUrbanProjectCapacity.objects.all()
     table = UPCTable(VerifUrbanProjectCapacity.objects.all())
     table.paginate(page=request.GET.get('page', 1), per_page=500)
     RequestConfig(request,paginate={'per_page': 500}).configure(table)
@@ -42,7 +41,6 @@ class UPCTable(tables.Table):
         attrs = {'class': 'green'}
         
 def Cat_IndustrySector(request):
-    upc = VerifTypeInductrySector.objects.all()
     table = Ind_sectorTable(VerifTypeInductrySector.objects.all())
     table.paginate(page=request.GET.get('page', 1), per_page=500)
     RequestConfig(request,paginate={'per_page': 500}).configure(table)
@@ -55,7 +53,6 @@ class Ind_sectorTable(tables.Table):
         attrs = {'class': 'green'}
         
 def invalid_geom (request):
-    upc = VerifInvalidGeometry.objects.all()
     table = invalid_geomTable(VerifInvalidGeometry.objects.all())
     table.paginate(page=request.GET.get('page', 1), per_page=500)
     RequestConfig(request,paginate={'per_page': 500}).configure(table)
@@ -68,7 +65,6 @@ class invalid_geomTable(tables.Table):
         attrs = {'class': 'green'}
         
 def invalid_proj (request):
-    upc = VerifProjection.objects.all()
     table = invalid_projTable(VerifProjection.objects.all())
     table.paginate(page=request.GET.get('page', 1), per_page=500)
     RequestConfig(request,paginate={'per_page': 500}).configure(table)
@@ -79,30 +75,23 @@ class invalid_projTable(tables.Table):
     class Meta:
         model = VerifProjection
         attrs = {'class': 'green'}
-        
-def count_meshWithoutLandUseArea (request):
-    upc = VerifFieldMesh.objects.all()
-    table = meshWithoutAPTable(VerifFieldMesh.objects.all())
-    table.paginate(page=request.GET.get('page', 1), per_page=500)
-    RequestConfig(request,paginate={'per_page': 500}).configure(table)
-    return render(request,'ctrainte_field_specificMesh_without_LandUseArea.html',{'count_error':table})
-# Create your views here.
-
-class meshWithoutAPTable(tables.Table):
-    class Meta:
-        model = VerifFieldMesh
-        attrs = {'class': 'green'}
-        
-def count_HouseholdWithoutAbstractPerson (request):
-    upc = VerifHousehold.objects.all()
-    table = hhWithoutAPTable(VerifHousehold.objects.all())
-    table.paginate(page=request.GET.get('page', 1), per_page=500)
-    RequestConfig(request,paginate={'per_page': 500}).configure(table)
-    return render(request,'ctrainte_Household_without_AP.html',{'count_error':table})
+                
+def count_contraintesIntegrite (request):
+    tableHH = hhWithoutAPTable(VerifHousehold.objects.all())
+    tableMesh = meshWithoutAPTable(VerifFieldMesh.objects.all())
+    tableHH.paginate(page=request.GET.get('page', 1), per_page=500)
+    tableMesh.paginate(page=request.GET.get('page', 1), per_page=500)
+    RequestConfig(request,paginate={'per_page': 500}).configure(tableHH)
+    RequestConfig(request,paginate={'per_page': 500}).configure(tableMesh)
+    return render(request,'contraintes.html',{'count_Mesh':tableMesh, 'count_HH':tableHH})
 # Create your views here.
 
 class hhWithoutAPTable(tables.Table):
     class Meta:
         model = VerifHousehold
         attrs = {'class': 'green'}
-        
+
+class meshWithoutAPTable(tables.Table):
+    class Meta:
+        model = VerifFieldMesh
+        attrs = {'class': 'green'}
