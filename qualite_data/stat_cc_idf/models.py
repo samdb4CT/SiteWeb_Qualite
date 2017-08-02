@@ -10,20 +10,77 @@ from __future__ import unicode_literals
 from django.db import models
 
 
+class DjangoMigrations(models.Model):
+    app = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    applied = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_migrations'
+
+
+class VerifFieldMesh(models.Model):
+    count = models.IntegerField(blank=True, primary_key=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'verif_field_mesh'
+
+
+class VerifHousehold(models.Model):
+    count = models.IntegerField(blank=True, primary_key=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'verif_household'
+
+
+class VerifInvalidGeometry(models.Model):
+    st_isvalid = models.NullBooleanField()
+    object_id = models.CharField(max_length=250, blank=True, primary_key=True)
+    city_object_type = models.CharField(max_length=250, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'verif_invalid_geometry'
+
+
 class VerifNombreEntites(models.Model):
-    type_object = models.CharField(max_length=10, blank=True, null=True)
+    type_object = models.CharField(max_length=30, blank=True, null=True)
     city_object_type = models.CharField(max_length=250, blank=True, primary_key=True)
     count = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = '"aaa_qualite_donnees"."verif_nombre_entites"'
+        db_table = 'verif_nombre_entites'
 
-    def get_type_object(self):
-        return self.type_object
-        
-    def get_city_object_type(self):
-        return self.city_object_type
-        
-    def get_count(self):
-        return self.count
+
+class VerifProjection(models.Model):
+    st_srid = models.IntegerField(blank=True, null=True)
+    object_id = models.CharField(max_length=250, blank=True, null=True)
+    city_object_type = models.CharField(max_length=250, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'verif_projection'
+
+
+class VerifTypeInductrySector(models.Model):
+    zone = models.CharField(max_length=250, blank=True, primary_key=True)
+    value = models.IntegerField(blank=True, null=True)
+    sector = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'verif_type_inductry_sector'
+
+
+class VerifUrbanProjectCapacity(models.Model):
+    object_id = models.CharField(max_length=50, blank=True, primary_key=True)
+    usage = models.TextField(blank=True, null=True)
+    area = models.CharField(max_length=250, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'verif_urban_project_capacity'

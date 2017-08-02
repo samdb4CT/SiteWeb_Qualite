@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Stat Ile de France{% endblock %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+<h2 style="margin-top:40px;text-align:center">vérification de la présence et de la complétude des urban_project_capacity</h2>
+
+<div>
+    {% render_table urban_project_capacity %}
+</div>
+
+{% endblock %}

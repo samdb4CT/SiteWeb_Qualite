@@ -25,7 +25,7 @@ SECRET_KEY = 's(icx__*w%_pq_a31wyuwz9g+=fsekeqjeyjvrdm&4fv(*m#0#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.105','192.168.1.82','192.168.1.161','192.168.1.114']
+ALLOWED_HOSTS = ['127.0.0.1']
 
 #quick and dirty way to add all person in forcity : 
 ALLOWED_HOSTS += ['192.168.1.%s' %(i) for i in range(256)]

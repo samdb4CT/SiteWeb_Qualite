@@ -3,10 +3,10 @@
 {% load render_table from django_tables2 %}
 {% block content %}
 
-<div id="titre" style="margin-top:40px">Vérification du nombre d'entités de chaque type</div>
+<h2 style="margin-top:40px;text-align:center">vérification des type de catégories pour les industry sector</h2>
 
 <div>
-    {% render_table nb_ent %}
+    {% render_table cat_indSector %}
 </div>
 
 {% endblock %}

@@ -754,16 +754,17 @@ td {
   content: "";
 }
 
-#main-content h2 {
+#h2 {
   margin-bottom: 8px;
   font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
   font-size: 22px;
   font-weight: bold;
   color: #474747;
   text-indent: 4px;
+  text-align: center;    
 }
-#main-content h2:before {
-  padding-right: 0.3em;
+#h2:before {
+  padding-right: 2em;
   margin-left: -1.5em;
   content: "";
   color: #9ddcff;

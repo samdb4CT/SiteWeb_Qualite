@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Stat Ile de France{% endblock %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+<h2 style="margin-top:40px;text-align:center">Contrainte d'intégrité</h2>
+<h2 style="margin-top:40px;text-align:center">nombre de 'field specific mesh' sans land use area</h2>
+
+<div>
+    {% render_table count_error %}
+</div>
+
+{% endblock %}
