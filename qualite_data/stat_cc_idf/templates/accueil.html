@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Stat Ile de France{% endblock %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+<h2 style="margin-top:40px;text-align:center">Accueil</h2>
+
+<div>
+    <button id="BtnUpdData1" type="button">Mise à jour des données 1</button><div id="myOutput1">{{ res1 }}</div>
+    <button id="BtnUpdData2" type="button">Mise à jour des données 2</button><div id="myOutput2">{{ res2 }}</div>
+</div>
+
+<script>
+    $("#BtnUpdData1").click(function() {
+        window.location.href='UpdData1';
+    });
+    $("#BtnUpdData2").click(function() {
+        window.location.href='UpdData2';
+    });
+</script>
+{% endblock %}
