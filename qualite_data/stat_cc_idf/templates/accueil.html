@@ -3,13 +3,30 @@
 {% load render_table from django_tables2 %}
 {% block content %}
 
+
+
 <h2 style="margin-top:40px;text-align:center">Accueil</h2>
 
 <div>
-    <button id="BtnUpdData1" type="button">Mise à jour des données 1</button><div id="myOutput1">{{ res1 }}</div>
-    <button id="BtnUpdData2" type="button">Mise à jour des données 2</button><div id="myOutput2">{{ res2 }}</div>
+	<table>
+			<tr><th width="30%">Données à mettre à jour</th><th width="70%">Résultat</th></tr>
+			<tr><td><button id="BtnUpdData1" type="button">Mise à jour des données "Compte d'entitées"</button></td><td><div id="myOutput1">{{ res1 }}</div></td></tr>
+			<tr><td><button id="BtnUpdData2" type="button">Mise à jour des données "Urban_city"</button></td><td><div id="myOutput2">{{ res2 }}</div></td></tr>
+			<tr><td><button id="BtnUpdData3" type="button">Mise à jour des données "Industry_sector"</button></td><td><div id="myOutput3">{{ res3 }}</div></td></tr>
+			<tr><td><button id="BtnUpdData4" type="button">Mise à jour des données "geometry"</button></td><td><div id="myOutput4">{{ res4 }}</div></td></tr>
+			<tr><td><button id="BtnUpdData5" type="button">Mise à jour des données "projection"</button></td><td><div id="myOutput5">{{ res5 }}</div></td></tr>
+			<tr><td><button id="BtnUpdData6" type="button">Mise à jour des données "field_mesh"</button></td><td><div id="myOutput6">{{ res6 }}</div></td></tr>
+			<tr><td><button id="BtnUpdData7" type="button">Mise à jour des données "household"</button></td><td><div id="myOutput7">{{ res7 }}</div></td></tr>	
+	</table>
 </div>
-
+<br/>
+<br/>
+<div>
+	<table>
+			<tr><th width="30%">Données à mettre à jour</th><th width="70%">Résultat</th></tr>
+			<tr><td><button id="BtnUpdData8" type="button" style="margin-right:30px">Mise à jour de toutes les données</button>    /!\ Peut être long !</td><td><div id="myOutput8">{{ res8 }}</div></td></tr>
+	</table>
+<div>
 <script>
     $("#BtnUpdData1").click(function() {
         window.location.href='UpdData1';
@@ -17,5 +34,24 @@
     $("#BtnUpdData2").click(function() {
         window.location.href='UpdData2';
     });
+	$("#BtnUpdData3").click(function() {
+        window.location.href='UpdData3';	
+    });
+	$("#BtnUpdData4").click(function() {
+        window.location.href='UpdData4';
+    });
+    $("#BtnUpdData5").click(function() {
+        window.location.href='UpdData5';
+    });
+	$("#BtnUpdData6").click(function() {
+        window.location.href='UpdData6';
+    });
+	$("#BtnUpdData7").click(function() {
+        window.location.href='UpdData7';
+    });
+	$("#BtnUpdData8").click(function() {
+        window.location.href='UpdData8';
+    });
+
 </script>
 {% endblock %}

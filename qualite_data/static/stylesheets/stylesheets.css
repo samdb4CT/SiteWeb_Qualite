@@ -453,6 +453,7 @@ table {
 
 td,
 th {
+  border: 2px solid black;
   padding: 0;
 }
 
@@ -625,12 +626,14 @@ table {
 
 th {
   font-weight: 500;
+  color: #2879d0;
+
 }
 
 td {
   font-weight: 300;
   text-align: center;
-  border: 1px solid #ebebeb;
+  border: 1px solid black;
 }
 #nav {
 		border: 1px solid #333;
