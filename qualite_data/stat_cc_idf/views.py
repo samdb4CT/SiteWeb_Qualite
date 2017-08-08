@@ -37,22 +37,22 @@ MODEL_BDD_PARAMS = {
 #config requests    
 MODEL_CONFIG_PARAMS = {
     'Requests': {
-        'Request_count': "SELECT 'base' as type_object, city_object_type, count(*) from {0}.city_objects group by city_object_type union select 'extension' as type_object, city_object_extension_type, count(*) from {0}.city_object_extensions group by city_object_extension_type " .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_urban_city': "SELECT object_id, data->>'area' as area, data->'classification'->>'usage' AS usage FROM (SELECT object_id, jsonb_array_elements(data->'floor_areas') AS data, validity_range FROM {0}.city_object_extensions WHERE city_object_extension_type='urban_project_capacity') AS sub WHERE data->>'area'!= {1} " .format(MODEL_BDD_PARAMS['city_context_name'], '\'{"unit": "m^{2}", "value": 0}\''),
-        'Request_type_sector': "SELECT zone, cast(jobs->>'value' AS INTEGER) as value, jobs->'classification'->>'industry_sector' AS sector FROM ( SELECT object_id AS zone, jsonb_array_elements(data -> 'number_of_jobs') AS jobs FROM {0}.city_object_extensions WHERE city_object_extension_type='employment') AS sub" .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_invalid_geometry': "SELECT st_isvalid(geometry), object_id, city_object_type FROM {0}.city_objects WHERE city_object_type='field_specific_mesh' AND not st_isvalid(geometry)" .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_projection_verif': "SELECT distinct st_srid(geometry) FROM {0}.city_objects where  st_srid(geometry) != {1}" .format(MODEL_BDD_PARAMS['city_context_name'], 4326),
-        'Request_field_mesh': "SELECT count(tp.lua_id) from (select lua.object_id as lua_id from (select object_id from {0}.city_object_extensions where city_object_extension_type = 'land_use_areas') as lua right join (select object_id from {0}.city_objects where city_object_type = 'field_specific_mesh') as fsm on fsm.object_id = lua.object_id where lua.object_id is null) as tp" .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_household' : "SELECT count(tp.id_hhd) from (select hhd.object_id as id_hhd from (select object_id from {0}.city_object_extensions where city_object_extension_type = 'household_abstract_persons' ) as ap left join (select object_id from {0}.city_objects where city_object_type = 'household' ) as hhd on hhd.object_id = ap.object_id where hhd.object_id is null) as tp" .format(MODEL_BDD_PARAMS['city_context_name'])
+        'Request_count': "SELECT 'base' as type_object, city_object_type, count(*), \'{0}\'::varchar as cc_name from {0}.city_objects group by city_object_type union select 'extension' as type_object, city_object_extension_type, count(*),\'{0}\'::varchar as cc_name from {0}.city_object_extensions group by city_object_extension_type " .format(MODEL_BDD_PARAMS['city_context_name']),
+        'Request_urban_city': "SELECT object_id, data->>'area' as area, data->'classification'->>'usage' AS usage,  \'{0}\' as cc_name  FROM (SELECT object_id, jsonb_array_elements(data->'floor_areas') AS data, validity_range FROM {0}.city_object_extensions WHERE city_object_extension_type='urban_project_capacity') AS sub WHERE data->>'area'!= {1} " .format(MODEL_BDD_PARAMS['city_context_name'], '\'{"unit": "m^{2}", "value": 0}\''),
+        'Request_type_sector': "SELECT zone, cast(jobs->>'value' AS INTEGER) as value, jobs->'classification'->>'industry_sector' AS sector,  \'{0}\'::varchar as cc_name  FROM ( SELECT object_id AS zone, jsonb_array_elements(data -> 'number_of_jobs') AS jobs FROM {0}.city_object_extensions WHERE city_object_extension_type='employment') AS sub" .format(MODEL_BDD_PARAMS['city_context_name']),
+        'Request_invalid_geometry': "SELECT st_isvalid(geometry), object_id, city_object_type , \'{0}\'::varchar as cc_name FROM {0}.city_objects WHERE city_object_type='field_specific_mesh' AND not st_isvalid(geometry)" .format(MODEL_BDD_PARAMS['city_context_name']),
+        'Request_projection_verif': "SELECT distinct st_srid(geometry) , \'{0}\'::varchar as cc_name FROM {0}.city_objects where  st_srid(geometry) != {1}" .format(MODEL_BDD_PARAMS['city_context_name'], 4326),
+        'Request_field_mesh': "SELECT count(tp.lua_id), \'{0}\'::varchar as cc_name from (select lua.object_id as lua_id from (select object_id from {0}.city_object_extensions where city_object_extension_type = 'land_use_areas') as lua right join (select object_id from {0}.city_objects where city_object_type = 'field_specific_mesh') as fsm on fsm.object_id = lua.object_id where lua.object_id is null) as tp" .format(MODEL_BDD_PARAMS['city_context_name']),
+        'Request_household' : "SELECT count(tp.id_hhd), \'{0}\'::varchar as cc_name  from (select hhd.object_id as id_hhd from (select object_id from {0}.city_object_extensions where city_object_extension_type = 'household_abstract_persons' ) as ap left join (select object_id from {0}.city_objects where city_object_type = 'household' ) as hhd on hhd.object_id = ap.object_id where hhd.object_id is null) as tp" .format(MODEL_BDD_PARAMS['city_context_name'])
     },
     'Requests_params' : {
-        'Request_insert_count': "INSERT INTO {0}.verif_nombre_entites (type_object,city_object_type,count)".format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_urban_city': "INSERT INTO {0}.verif_urban_project_capacity (object_id,area,usage)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_type_sector': "INSERT INTO {0}.verif_type_inductry_sector (zone,value,sector)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_invalid_geometry': "INSERT INTO {0}.verif_invalid_geometry (st_isvalid,object_id,city_object_type)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_projection_verif': "INSERT INTO {0}.verif_projection (st_srid,object_id,city_object_type)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_field_mesh': "INSERT INTO {0}.verif_field_mesh (count)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_household': "INSERT INTO {0}.verif_household(count)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
+        'Request_insert_count': "INSERT INTO {0}.verif_nombre_entites (type_object,city_object_type,count, cc_name)".format(MODEL_BDD_PARAMS['verif_quality_schema']),
+        'Request_insert_urban_city': "INSERT INTO {0}.verif_urban_project_capacity (object_id,area,usage,MODEL_BDD_PARAMS cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
+        'Request_insert_type_sector': "INSERT INTO {0}.verif_type_inductry_sector (zone,value,sector, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
+        'Request_insert_invalid_geometry': "INSERT INTO {0}.verif_invalid_geometry (st_isvalid,object_id,city_object_type, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
+        'Request_insert_projection_verif': "INSERT INTO {0}.verif_projection (st_srid,object_id,city_object_type, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
+        'Request_insert_field_mesh': "INSERT INTO {0}.verif_field_mesh (count, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
+        'Request_insert_household': "INSERT INTO {0}.verif_household(count, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
     }
 }
 try:
@@ -84,7 +84,7 @@ def insert_into(array,cursor,request):
         try:       
             cursor.execute("""
                 %s
-                VALUES ('%s','%s','%s') """ % (request,x[0],x[1],x[2])
+                VALUES ('%s','%s','%s','%s') """ % (request,x[0],x[1],x[2],x[3])
           
                 )
         except psycopg2.ProgrammingError as a:
@@ -95,7 +95,7 @@ def insert_into_constraint_tables(array,cursor,request):
         try:       
             cursor.execute("""
                 %s
-                VALUES ('%s') """ % (request,x[0])
+                VALUES ('%s','%s') """ % (request,x[0],x[1])
           
                 )
         except psycopg2.ProgrammingError as a:
@@ -181,6 +181,17 @@ def count_contraintesIntegrite (request):
     return render(request,'contraintes.html',{'count_Mesh':tableMesh, 'count_HH':tableHH})
 # Create your views here.
 
+def selected_path(request):
+    if(request.GET.get('mybtn')):
+        counter = 8
+        print(counter)
+    return render(request, 'selected_path.html', {'selected_path':counter}) 
+
+def output(request):
+    if request.is_ajax():
+        py_obj = test_code(10)
+        return render(request, 'output.html', {'output': py_obj.a})
+
 class hhWithoutAPTable(tables.Table):
     class Meta:
         model = VerifHousehold
@@ -201,8 +212,11 @@ def launch_UpdData1(request):
     #connection to verif_shema
     target_cur = target_connection.cursor()
     #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_nombre_entites" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit() 
+    try:
+        target_cur.execute("TRUNCATE {0}.verif_nombre_entites" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit() 
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute 1st request
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_count'])
     # insert for 1st request 
@@ -223,8 +237,11 @@ def launch_UpdData2(request):
     #connection to verif_shema
     target_cur = target_connection.cursor()
     #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_urban_project_capacity" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit()   
+    try:
+        target_cur.execute("TRUNCATE {0}.verif_urban_project_capacity" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit()   
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute 2nd request      
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_urban_city'])
     #insert for 2nd request
@@ -245,8 +262,11 @@ def launch_UpdData3(request):
     #connection to verif_shema
     target_cur = target_connection.cursor()
     #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_type_inductry_sector" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit()   
+    try:
+        target_cur.execute("TRUNCATE {0}.verif_type_inductry_sector" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit()   
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute 3rd request
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_type_sector'])
     #insert for 3rd request
@@ -267,8 +287,11 @@ def launch_UpdData4(request):
     #connection to verif_shema
     target_cur = target_connection.cursor()
     #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_invalid_geometry" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit()  
+    try:
+        target_cur.execute("TRUNCATE {0}.verif_invalid_geometry" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit()  
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute geometry request
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_invalid_geometry'])
     #insert invalid_geometry
@@ -289,8 +312,11 @@ def launch_UpdData5(request):
     #connection to verif_shema
     target_cur = target_connection.cursor()
     #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_projection" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit()     
+    try:
+        target_cur.execute("TRUNCATE {0}.verif_projection" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit()     
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute projection request
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_projection_verif'])
     #insert projection verif
@@ -311,9 +337,12 @@ def launch_UpdData6(request):
     cur = connection.cursor()
     #connection to verif_shema
     target_cur = target_connection.cursor()
-    #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_field_mesh" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit()  
+    #delete all table content*
+    try: 
+        target_cur.execute("TRUNCATE {0}.verif_field_mesh" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit()  
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute integrity constraint
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_field_mesh'])
     #insert integrity_constraint
@@ -334,15 +363,18 @@ def launch_UpdData7(request):
     #connection to verif_shema
     target_cur = target_connection.cursor()
     #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_household" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit()     
+    try:
+        target_cur.execute("TRUNCATE {0}.verif_household" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit()     
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute household request
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_household'])
     #insert household request
     insert_into_constraint_tables(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_household'])
     seven_request_time = time.time()
     print( "household Request done in %s seconds!" %(seven_request_time - start_time))
-    res7 = ("household Request done in %s seconds!" %(seven_request_time - six_request_time))
+    res7 = ("household Request done in %s seconds!" %(seven_request_time - start_time))
     #target_connection commit
     target_connection.commit()
     print("commit ok. All data loaded successfully")
@@ -356,8 +388,11 @@ def launch_UpdAllData(request):
     #connection to verif_shema
     target_cur = target_connection.cursor()
     #delete all table content
-    target_cur.execute("TRUNCATE {0}.verif_nombre_entites, {0}.verif_urban_project_capacity, {0}.verif_type_inductry_sector, {0}.verif_invalid_geometry, {0}.verif_projection;" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-    target_connection.commit() 
+    try:
+        target_cur.execute("TRUNCATE {0}.verif_nombre_entites, {0}.verif_urban_project_capacity, {0}.verif_type_inductry_sector, {0}.verif_invalid_geometry, {0}.verif_projection;" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
+        target_connection.commit() 
+    except Exception as e:
+        print ("erreur :" + str(e)) 
     #execute 1st request
     array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_count'])
     #insert for 1st request 

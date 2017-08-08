@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Stat Ile de France{% endblock %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+<h2 style="margin-top:40px;text-align:center">Objets de type 'field_specific_mesh' géométriquement invalides</h2>
+
+<div>
+    {% render_table test %}
+</div>
+
+{% endblock %}
