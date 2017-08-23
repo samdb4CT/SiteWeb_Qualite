@@ -1,10 +1,8 @@
 #-*- coding: utf-8 -*-
+#!/usr/bin/env python3
 from django.shortcuts import render
 from django.http import Http404
 from datetime import datetime
-import psycopg2
-import numpy as np
-import time
 
 import django_tables2 as tables
 from django_tables2 import RequestConfig
@@ -15,92 +13,11 @@ from stat_cc_idf.models import VerifInvalidGeometry
 from stat_cc_idf.models import VerifProjection
 from stat_cc_idf.models import VerifFieldMesh
 from stat_cc_idf.models import VerifHousehold
+# from launch_UpdData import * 
+import stat_cc_idf.launch_UpdData as launch_UpdData
+import stat_cc_idf.model_params as model_params
 
-#Model parameters
-MODEL_BDD_PARAMS = {
-    'credentials': {
-        'host': '192.168.1.130',
-        'dbname': 'cc_dynex_idf_test',
-        'user': 's_deschamps',
-        'password': 's_deschampsberger'
-    },
-    'credentials_db_target': {
-        'host': '192.168.1.130',
-        'dbname': 'integration_france',
-        'user': 's_deschamps',
-        'password': 's_deschampsberger'   
-    },
-    'city_context_name' : '\"e7fd873b-38e5-41c8-834f-26d41d845493\"',
-    'verif_quality_schema' : 'aaa_qualite_donnees',
-    }
-
-#config requests    
-MODEL_CONFIG_PARAMS = {
-    'Requests': {
-        'Request_count': "SELECT 'base' as type_object, city_object_type, count(*), \'{0}\'::varchar as cc_name from {0}.city_objects group by city_object_type union select 'extension' as type_object, city_object_extension_type, count(*),\'{0}\'::varchar as cc_name from {0}.city_object_extensions group by city_object_extension_type " .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_urban_city': "SELECT object_id, data->>'area' as area, data->'classification'->>'usage' AS usage,  \'{0}\' as cc_name  FROM (SELECT object_id, jsonb_array_elements(data->'floor_areas') AS data, validity_range FROM {0}.city_object_extensions WHERE city_object_extension_type='urban_project_capacity') AS sub WHERE data->>'area'!= {1} " .format(MODEL_BDD_PARAMS['city_context_name'], '\'{"unit": "m^{2}", "value": 0}\''),
-        'Request_type_sector': "SELECT zone, cast(jobs->>'value' AS INTEGER) as value, jobs->'classification'->>'industry_sector' AS sector,  \'{0}\'::varchar as cc_name  FROM ( SELECT object_id AS zone, jsonb_array_elements(data -> 'number_of_jobs') AS jobs FROM {0}.city_object_extensions WHERE city_object_extension_type='employment') AS sub" .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_invalid_geometry': "SELECT st_isvalid(geometry), object_id, city_object_type , \'{0}\'::varchar as cc_name FROM {0}.city_objects WHERE city_object_type='field_specific_mesh' AND not st_isvalid(geometry)" .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_projection_verif': "SELECT distinct st_srid(geometry) , \'{0}\'::varchar as cc_name FROM {0}.city_objects where  st_srid(geometry) != {1}" .format(MODEL_BDD_PARAMS['city_context_name'], 4326),
-        'Request_field_mesh': "SELECT count(tp.lua_id), \'{0}\'::varchar as cc_name from (select lua.object_id as lua_id from (select object_id from {0}.city_object_extensions where city_object_extension_type = 'land_use_areas') as lua right join (select object_id from {0}.city_objects where city_object_type = 'field_specific_mesh') as fsm on fsm.object_id = lua.object_id where lua.object_id is null) as tp" .format(MODEL_BDD_PARAMS['city_context_name']),
-        'Request_household' : "SELECT count(tp.id_hhd), \'{0}\'::varchar as cc_name  from (select hhd.object_id as id_hhd from (select object_id from {0}.city_object_extensions where city_object_extension_type = 'household_abstract_persons' ) as ap left join (select object_id from {0}.city_objects where city_object_type = 'household' ) as hhd on hhd.object_id = ap.object_id where hhd.object_id is null) as tp" .format(MODEL_BDD_PARAMS['city_context_name'])
-    },
-    'Requests_params' : {
-        'Request_insert_count': "INSERT INTO {0}.verif_nombre_entites (type_object,city_object_type,count, cc_name)".format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_urban_city': "INSERT INTO {0}.verif_urban_project_capacity (object_id,area,usage,MODEL_BDD_PARAMS cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_type_sector': "INSERT INTO {0}.verif_type_inductry_sector (zone,value,sector, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_invalid_geometry': "INSERT INTO {0}.verif_invalid_geometry (st_isvalid,object_id,city_object_type, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_projection_verif': "INSERT INTO {0}.verif_projection (st_srid,object_id,city_object_type, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_field_mesh': "INSERT INTO {0}.verif_field_mesh (count, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-        'Request_insert_household': "INSERT INTO {0}.verif_household(count, cc_name)" .format(MODEL_BDD_PARAMS['verif_quality_schema']),
-    }
-}
-try:
-    print('Connecting to %s DB (%s)...' % (MODEL_BDD_PARAMS['credentials']['dbname'], MODEL_BDD_PARAMS['credentials']['host']))
-    connection = psycopg2.connect(' '.join(['%s=%s' %(key, value) for key, value in MODEL_BDD_PARAMS['credentials'].items()]))
-except Exception as e:
-    print("I am unable to connect to the database.")
-    print(str(e))
-
-try:
-    print('Connecting to %s DB (%s)...' % (MODEL_BDD_PARAMS['credentials_db_target']['dbname'], MODEL_BDD_PARAMS['credentials_db_target']['host']))
-    target_connection = psycopg2.connect(' '.join(['%s=%s' %(key, value) for key, value in MODEL_BDD_PARAMS['credentials_db_target'].items()]))
-except:
-    print("Unable to connect to the database.")
-print("connection established, requests starting, may took a while...")
-
-def exec_request(cursor,request):
-        try:
-            cursor.execute(request)
-        except Exception as a:
-            print(a)
-        rows = cursor.fetchall()
-        array_values = np.asarray(rows)
-
-        return array_values
-
-def insert_into(array,cursor,request):
-    for x in array:
-        try:       
-            cursor.execute("""
-                %s
-                VALUES ('%s','%s','%s','%s') """ % (request,x[0],x[1],x[2],x[3])
           
-                )
-        except psycopg2.ProgrammingError as a:
-            print(a)
-
-def insert_into_constraint_tables(array,cursor,request):
-    for x in array:
-        try:       
-            cursor.execute("""
-                %s
-                VALUES ('%s','%s') """ % (request,x[0],x[1])
-          
-                )
-        except psycopg2.ProgrammingError as a:
-            print(a)
-
 def date_actuelle(request):
     return render(request, 'date.html', {'date': datetime.now()})
     
@@ -113,6 +30,7 @@ def accueil(request):
 def NbEntites(request):
     nbEntites = VerifNombreEntites.objects.all()
     table = EntiteTable(VerifNombreEntites.objects.all())
+    ccname=request.GET.get('ccname')
     table.paginate(page=request.GET.get('page', 1), per_page=500)
     RequestConfig(request,paginate={'per_page': 500}).configure(table)
     return render(request,'stat_NombreEntites.html',{'nb_ent':table})
@@ -201,184 +119,32 @@ class meshWithoutAPTable(tables.Table):
     class Meta:
         model = VerifFieldMesh
         attrs = {'class': 'green'}
-        
 
 
 def launch_UpdData1(request):
-
-    start_time = time.time()
-    #connection to city_context
-    cur = connection.cursor()
-    #connection to verif_shema
-    target_cur = target_connection.cursor()
-    #delete all table content
-    try:
-        target_cur.execute("TRUNCATE {0}.verif_nombre_entites" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-        target_connection.commit() 
-    except Exception as e:
-        print ("erreur :" + str(e)) 
-    #execute 1st request
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_count'])
-    # insert for 1st request 
-    insert_into(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_count'])
-    first_request_time = time.time()
-    print ( "Count Request done in %s seconds!" %(first_request_time- start_time))
-    res1 = ("Count Request done in %s seconds!" %(first_request_time- start_time))
-    #target_connection commit
-    target_connection.commit()
-    print("commit ok. All data loaded successfully")
+    res1 = launch_UpdData.launch_UpdData('verif_nombre_entites',model_params.MODEL_CONFIG_PARAMS['Requests']['Request_count'],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_count'])
     return render(request, 'accueil.html', {'res1' : res1})
-
 def launch_UpdData2(request):
-
-    start_time = time.time()
-    #connection to city_context
-    cur = connection.cursor()
-    #connection to verif_shema
-    target_cur = target_connection.cursor()
-    #delete all table content
-    try:
-        target_cur.execute("TRUNCATE {0}.verif_urban_project_capacity" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-        target_connection.commit()   
-    except Exception as e:
-        print ("erreur :" + str(e)) 
-    #execute 2nd request      
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_urban_city'])
-    #insert for 2nd request
-    insert_into(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_urban_city'])
-    second_request_time = time.time()  
-    print ( "Urban_city Request done in %s seconds!" %(second_request_time - start_time))
-    res2 = ("Urban_city Request done in %s seconds!" %(second_request_time - start_time))
-    #target_connection commit
-    target_connection.commit()
-    print("commit ok. All data loaded successfully")
+    res2 = launch_UpdData.launch_UpdData('verif_urban_project_capacity',model_params.MODEL_CONFIG_PARAMS['Requests']['Request_urban_city'],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_urban_city'])
     return render(request, 'accueil.html', {'res2' : res2})
-
 def launch_UpdData3(request):
-
-    start_time = time.time()
-    #connection to city_context
-    cur = connection.cursor()
-    #connection to verif_shema
-    target_cur = target_connection.cursor()
-    #delete all table content
-    try:
-        target_cur.execute("TRUNCATE {0}.verif_type_inductry_sector" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-        target_connection.commit()   
-    except Exception as e:
-        print ("erreur :" + str(e)) 
-    #execute 3rd request
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_type_sector'])
-    #insert for 3rd request
-    insert_into(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_type_sector'])
-    third_request_time = time.time()
-    print( "Type_sector Request done in %s seconds!" %(third_request_time - start_time))
-    res3 = ("Type_Sector Request done in %s seconds!" %(third_request_time - start_time))
-    #target_connection commit
-    target_connection.commit()
-    print("commit ok. All data loaded successfully")
+    res3 = launch_UpdData.launch_UpdData('verif_type_inductry_sector',model_params.MODEL_CONFIG_PARAMS['Requests']['Request_type_sector'],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_type_sector'])
     return render(request, 'accueil.html', {'res3' : res3})
-
 def launch_UpdData4(request):
-
-    start_time = time.time()
-    #connection to city_context
-    cur = connection.cursor()
-    #connection to verif_shema
-    target_cur = target_connection.cursor()
-    #delete all table content
-    try:
-        target_cur.execute("TRUNCATE {0}.verif_invalid_geometry" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-        target_connection.commit()  
-    except Exception as e:
-        print ("erreur :" + str(e)) 
-    #execute geometry request
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_invalid_geometry'])
-    #insert invalid_geometry
-    insert_into(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_invalid_geometry'])
-    fourth_request_time = time.time()
-    print( "Invalid_geometry Request done in %s seconds!" %(fourth_request_time - start_time))
-    res4 = ("Type_Sector Request done in %s seconds!" %(fourth_request_time - start_time))
-    #target_connection commit
-    target_connection.commit()
-    print("commit ok. All data loaded successfully")
+    res4 = launch_UpdData.launch_UpdData('verif_invalid_geometry',model_params.MODEL_CONFIG_PARAMS['Requests']['Request_invalid_geometry'],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_invalid_geometry'])
     return render(request, 'accueil.html', {'res4' : res4})
-
 def launch_UpdData5(request):
-    
-    start_time = time.time()
-    #connection to city_context
-    cur = connection.cursor()
-    #connection to verif_shema
-    target_cur = target_connection.cursor()
-    #delete all table content
-    try:
-        target_cur.execute("TRUNCATE {0}.verif_projection" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-        target_connection.commit()     
-    except Exception as e:
-        print ("erreur :" + str(e)) 
-    #execute projection request
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_projection_verif'])
-    #insert projection verif
-    insert_into(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_projection_verif'])
-    fifth_request_time = time.time()
-    print( "Projection_verif Request done in %s seconds!" %(fifth_request_time - start_time))
-    res5 = ("Projection_verif Request done in %s seconds!" %(fifth_request_time - start_time))
-    #target_connection commit
-    target_connection.commit()
-    print("commit ok. All data loaded successfully")
+    res5 = launch_UpdData.launch_UpdData('verif_projection',model_params.MODEL_CONFIG_PARAMS['Requests']['Request_projection_verif'],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_projection_verif'])
     return render(request, 'accueil.html', {'res5' : res5})
-
 def launch_UpdData6(request):
-
-    print ("je rentre dedans")
-    start_time = time.time()
-    #connection to city_context
-    cur = connection.cursor()
-    #connection to verif_shema
-    target_cur = target_connection.cursor()
-    #delete all table content*
-    try: 
-        target_cur.execute("TRUNCATE {0}.verif_field_mesh" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-        target_connection.commit()  
-    except Exception as e:
-        print ("erreur :" + str(e)) 
-    #execute integrity constraint
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_field_mesh'])
-    #insert integrity_constraint
-    insert_into_constraint_tables(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_field_mesh'])
-    six_request_time = time.time()
-    print( "Mesh_without_area Request done in %s seconds!" %(six_request_time - start_time))
-    res6 = ("Mesh_without_area  Request done in %s seconds!" %(six_request_time - start_time))
-    #target_connection commit
-    target_connection.commit()
-    print("commit ok. All data loaded successfully")
+    res6 = launch_UpdData.launch_UpdData_constraint_tables('verif_field_mesh',model_params.MODEL_CONFIG_PARAMS['Requests']['Request_field_mesh'],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_field_mesh'])
     return render(request, 'accueil.html', {'res6' : res6})
-
 def launch_UpdData7(request):
-
-    start_time = time.time()
-    #connection to city_context
-    cur = connection.cursor()
-    #connection to verif_shema
-    target_cur = target_connection.cursor()
-    #delete all table content
-    try:
-        target_cur.execute("TRUNCATE {0}.verif_household" .format(MODEL_BDD_PARAMS['verif_quality_schema']))
-        target_connection.commit()     
-    except Exception as e:
-        print ("erreur :" + str(e)) 
-    #execute household request
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_household'])
-    #insert household request
-    insert_into_constraint_tables(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_household'])
-    seven_request_time = time.time()
-    print( "household Request done in %s seconds!" %(seven_request_time - start_time))
-    res7 = ("household Request done in %s seconds!" %(seven_request_time - start_time))
-    #target_connection commit
-    target_connection.commit()
-    print("commit ok. All data loaded successfully")
+    res7 = launch_UpdData.launch_UpdData_constraint_tables('verif_household',model_params.MODEL_CONFIG_PARAMS['Requests']['Request_household'],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_household'])
     return render(request, 'accueil.html', {'res7' : res7})
+def launch_UpdData8(request):
+    res8 = launch_UpdData.launch_UpdData_stat('verif_count_statistics',[model_params.MODEL_CONFIG_PARAMS['Requests']['Request_count_household'],model_params.MODEL_CONFIG_PARAMS['Requests']['Request_employment']],model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_into_count_statistics'])
+    return render(request, 'accueil.html', {'res8' : res8})
 
 def launch_UpdAllData(request):
 
@@ -394,9 +160,9 @@ def launch_UpdAllData(request):
     except Exception as e:
         print ("erreur :" + str(e)) 
     #execute 1st request
-    array_values = exec_request(cur,MODEL_CONFIG_PARAMS['Requests']['Request_count'])
+    array_values = exec_request(cur,model_params.MODEL_CONFIG_PARAMS['Requests']['Request_count'])
     #insert for 1st request 
-    insert_into(array_values,target_cur,MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_count'])
+    insert_into(array_values,target_cur,model_params.MODEL_CONFIG_PARAMS['Requests_params']['Request_insert_count'])
     first_request_time = time.time()
     print("Count Request done in %s seconds!" %(first_request_time-start_time))
     #execute 2nd request      
@@ -436,6 +202,6 @@ def launch_UpdAllData(request):
     final_time = time.time()
     #target_connection commit
     target_connection.commit()
-    res8 = ("household Request done in %s seconds!" %(final_time - start_time))
+    res = ("household Request done in %s seconds!" %(final_time - start_time))
     print("commit ok. All data loaded successfully")
-    return render(request, 'accueil.html', {'res8' : res8})        
+    return render(request, 'accueil.html', {'res8' : res})        

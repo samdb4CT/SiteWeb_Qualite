@@ -7,25 +7,14 @@
     <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="{%static 'stylesheets/stylesheets.css'%}" media="screen">
     <link rel="stylesheet" type="text/css" href="{%static 'stylesheets/github-light.css'%}" media="screen">
-	<link rel="stylesheet" type="text/css" href="{%static 'stylesheets/.css'%}" />
     <!-- <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" /> -->
     <link href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-
     <title>{% block title %}Travaux Qualité{% endblock %}</title>
     <header('Access-Control-Allow-Origin: *')>
 
 </head>
-<script>
-function insertParam(key)
-{
-    ccname = document.getElementById("ListCCName").value;
-    currentUrl = window.location.href;
-    newUrl = currentUrl + "?"+key+"="+ccname;
-    window.location.href  = newUrl;
-}
-</script>
 <body>
     <header>
       <div class="inner">
@@ -51,14 +40,6 @@ function insertParam(key)
         <li><a href="">Rouen</a></li>
         <li><a href="">Nice</a></li>
     </ul>
-    <FORM NAME="Choix">
-    <SELECT id="ListCCName" onChange="insertParam('ccname')">
-       <OPTION VALUE="un">Choisir une option
-       <OPTION VALUE="deux">Les copains
-       <OPTION VALUE="trois">La plongée
-       <OPTION VALUE="quatre">Recherche
-    </SELECT>
-    </FORM>
     {% block content %}{% endblock %}
 </body>
 </html>

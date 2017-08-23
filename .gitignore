@@ -1,0 +1,7 @@
+
+*.pyc
+qualite_data/static/city_objects.cpg
+qualite_data/static/city_objects.dbf
+qualite_data_sav.zip
+qualite_data/stat_cc_idf/__pycache__/views.cpython-34.pyc
+*.pyc
