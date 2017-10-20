@@ -2,9 +2,28 @@
 {% block title %}Stat Ile de France{% endblock %}
 {% load render_table from django_tables2 %}
 {% block content %}
-
-
+{% if envoi %}Votre message a bien été envoyé !{% endif %}
+<script>
+	<!-- document.getElementById("NewCCAdd").style.visibility = "hidden"; -->
+    function addCC(){
+        if (document.getElementById("NewCCAdd").style.visibility == "hidden"){
+            document.getElementById("CreateNewCC").innerHTML = "cacher l'ajout";
+            document.getElementById("NewCCAdd").style.visibility = "visible";
+        }
+        else{
+            document.getElementById("CreateNewCC").innerHTML = "ajouter un nouveau city context";
+            document.getElementById("NewCCAdd").style.visibility = "hidden";
+        }
+    }
+</script>
+<button id="CreateNewCC" class="button" onclick="addCC()">ajouter un nouveau city context</button>
 <h2 style="margin-top:40px;text-align:center">Accueil</h2>
+<form id="NewCCAdd" style="visibility:hidden" action="{% url "accueil" %}" method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit" />
+</form>
+
 <div>
 	<table>
 			<tr><th>Données à mettre à jour</th><th>Résultat</th></tr>

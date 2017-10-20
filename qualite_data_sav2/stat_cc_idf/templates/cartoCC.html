@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Stat Ile de France{% endblock %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+
+<link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
+<!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+<script src="https://openlayers.org/en/v4.2.0/build/ol.js"></script>
+<script>
+//function init(){
+//    var layers = [new ol.layer.Tile({
+//                source: new ol.source.OSM()
+//              }),
+//              new ol.layer.Tile({
+//                source:new ol.source.TileWMS({
+//                    url:'http://127.0.0.1:8081/cgi-bin/mapserv.exe?MAP=C:\ms4w\apps\SiteWebQualite\city_context.map&',
+//                    params:{
+//                        crs: 'EPSG:4326',
+//                        width: '800',
+//                        styles: '',
+//                        height: '550',
+//                        layers: 'city_context',
+//                        transparent:"true",
+//                        format: 'image/png',
+//                        TILED: true,
+//                        bbox: '42.455888,-5.668945,50.903033,8.525391'
+//                        },
+//                    serverType:'mapserver'
+//                })
+//              })
+//            ];
+//    map = new ol.Map({
+//        target: 'map',
+//        projection:"EPSG:4326",
+//        layers:layers
+//        });
+//}
+
+function init(){
+/**
+       * Create the map.
+       */
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM()
+          }),
+          //new ol.layer.Tile({
+          //  source: new ol.source.TileJSON({
+          //    url: 'https://api.tiles.mapbox.com/v3/mapbox.natural-earth-hypso-bathy.json?secure',
+          //    crossOrigin: 'anonymous'
+          //  }),
+          //  minResolution: 2000,
+          //  maxResolution: 20000
+          //}),
+          new ol.layer.Tile({
+            source:new ol.source.TileWMS({
+                url:'http://127.0.0.1:8081/cgi-bin/mapserv.exe?MAP=C:\\ms4w\\apps\\SiteWebQualite\\city_context.map&',
+                params:{
+                    crs: 'EPSG:4326',
+                    width: '800',
+                    styles: '',
+                    height: '550',
+                    layers: 'city_context',
+                    transparent:"true",
+                    format: 'image/png',
+                    TILED: true,
+                    bbox: '42.455888,-5.668945,50.903033,8.525391'
+                    },
+                serverType:'mapserver'
+            })
+          })
+        ],
+        target: 'map',
+        controls: ol.control.defaults({
+          attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+            collapsible: false
+          })
+        }),
+        view: new ol.View({
+          center: [0, 0],
+          projection: 'EPSG:4326',
+          zoom: 5
+        })
+      });
+}
+
+</script>
+<h2 style="margin-top:40px;text-align:center">Cartographie du City Context</h2>
+
+<body onload="init()">
+<div id="map" class="map" style="width: 600px; height: 300px"></div>
+</div>
+
+{% endblock %}

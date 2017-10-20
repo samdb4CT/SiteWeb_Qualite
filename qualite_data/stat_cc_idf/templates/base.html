@@ -7,8 +7,6 @@
     <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="{%static 'stylesheets/stylesheets.css'%}" media="screen">
     <link rel="stylesheet" type="text/css" href="{%static 'stylesheets/github-light.css'%}" media="screen">
-	<link rel="stylesheet" type="text/css" href="{%static 'stylesheets/.css'%}" />
-    <!-- <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" /> -->
     <link href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
@@ -18,13 +16,14 @@
 
 </head>
 <script>
-function insertParam(key)
-{
-    ccname = document.getElementById("ListCCName").value;
-    currentUrl = window.location.href;
-    newUrl = currentUrl + "?"+key+"="+ccname;
-    window.location.href  = newUrl;
-}
+    function insertParam(key,value)
+    {
+        <!-- Type_Object = document.getElementById("ListCCName").value; -->
+        currentUrl = window.location.href;
+
+        newUrl = currentUrl + "?"+key+"="+value;
+        window.location  = newUrl;
+    }
 </script>
 <body>
     <header>
@@ -38,27 +37,32 @@ function insertParam(key)
         <li><a href="Accueil">Accueil</a></li>
         <li><a href="">Île de France</a>
             <ul>
-                <li><a href="NombreEntites">Nombre d'entités</a></li>
-                <li><a href="UrbanProjectCapacity">Urban Project Capacity</a></li>
-                <li><a href="Cat_IndustrySector">Industry Sector</a></li>
-                <li><a href="Invalid_geom">Géométries invalides</a></li>
-                <li><a href="Invalid_proj">Projections invalides</a></li>
-                <li><a href="contraintesIntegrite">Contraintes d'intégrité</a></li>
-                <li><a href="cartoCC">Cartographie du City Context</a></li>
+                <li><a href="" onclick=insertParam("CCName","cc1")>1</a></li>
+                <li><a href="" onclick=insertParam("CCName","cc2")>2</a></li>
             </ul>
         </li>
         <li><a href="">Lyon</a></li>
         <li><a href="">Rouen</a></li>
         <li><a href="">Nice</a></li>
     </ul>
-    <FORM NAME="Choix">
-    <SELECT id="ListCCName" onChange="insertParam('ccname')">
-       <OPTION VALUE="un">Choisir une option
-       <OPTION VALUE="deux">Les copains
-       <OPTION VALUE="trois">La plongée
-       <OPTION VALUE="quatre">Recherche
-    </SELECT>
-    </FORM>
+    <ul id="menu">
+        <li><a href="NombreEntites">Nombre d'entités</a></li>
+        <li><a href="UrbanProjectCapacity">Urban Project Capacity</a></li>
+        <li><a href="Cat_IndustrySector">Industry Sector</a></li>
+        <li><a href="Invalid_geom">Géométries invalides</a></li>
+        <li><a href="Invalid_proj">Projections invalides</a></li>
+        <li><a href="contraintesIntegrite">Contraintes d'intégrité</a></li>
+        <li><a href="cartoCC">Cartographie du City Context</a></li>
+        <li><a href="countStat">Statistiques</a></li>
+    </ul>
+    <!-- <FORM id="Choix"> -->
+    <!-- <SELECT id="ListCCName" onChange="insertParam('Type_Object')"> -->
+       <!-- <OPTION VALUE="">Choisir une option -->
+       <!-- <OPTION VALUE="base">Base -->
+       <!-- <OPTION VALUE="extension">Extension -->
+    <!-- </SELECT> -->
+    <!-- </FORM> -->
     {% block content %}{% endblock %}
 </body>
 </html>
+

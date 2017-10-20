@@ -34,6 +34,15 @@ class VerifHousehold(models.Model):
     class Meta:
         managed = False
         db_table = 'verif_household'
+        
+class countStatistiques(models.Model):
+    nom = models.CharField(max_length=250, blank=True, primary_key=True)
+    count = models.IntegerField(blank=True)
+    cc_name = models.CharField(max_length=250, blank=True, primary_key=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'count_statistics'
 
 
 class VerifInvalidGeometry(models.Model):
@@ -50,6 +59,7 @@ class VerifNombreEntites(models.Model):
     type_object = models.CharField(max_length=30, blank=True, null=True)
     city_object_type = models.CharField(max_length=250, blank=True, primary_key=True)
     count = models.IntegerField(blank=True, null=True)
+    cc_name = models.CharField(max_length=250, blank=True, primary_key=True)
 
     class Meta:
         managed = False

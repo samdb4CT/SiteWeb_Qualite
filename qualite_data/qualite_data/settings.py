@@ -26,6 +26,7 @@ SECRET_KEY = 's(icx__*w%_pq_a31wyuwz9g+=fsekeqjeyjvrdm&4fv(*m#0#'
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS += ['localhost']
 
 #quick and dirty way to add all person in forcity : 
 ALLOWED_HOSTS += ['192.168.1.%s' %(i) for i in range(256)]
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'jquery',
     'django_tables2',
     'stat_cc_idf'
 ]
